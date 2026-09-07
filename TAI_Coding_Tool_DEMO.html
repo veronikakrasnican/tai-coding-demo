@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TAI Coding Tool — Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e1117;--surface:#161b27;--surface2:#1e2535;--border:#2a3348;
+  --navy:#1a3fbb;--blue:#3d6df0;--blue-soft:#1e3a7a;--teal:#0d9e8e;
+  --gold:#d4a843;--accent:#e05a3a;--green:#2fa870;--purple:#8b5cf6;
+  --text:#e8edf5;--text2:#8896b0;--text3:#4a5568;
+  --full-bg:#0a2d22;--partial-bg:#2a2208;--notaligned-bg:#2d0e0a;--emergent-bg:#1e1030;
+  --positive-bg:#0a2d18;--positive:#22c55e;--negative-bg:#2d0a0a;--negative:#ef4444;
+  --ambiguous-bg:#2d2408;--ambiguous:#f59e0b;--neutral-bg:#1a1f2e;--neutral:#94a3b8;
+  --pending-bg:#1a2035;--pending:#60a5fa;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;min-height:100vh;}
+
+/* DEMO BANNER */
+.demo-banner{background:linear-gradient(90deg,#7c3f00,#b85c00);padding:7px 24px;display:flex;align-items:center;gap:12px;font-size:11px;color:#ffe0b2;}
+.demo-banner strong{font-weight:700;letter-spacing:0.05em;}
+
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:32px;z-index:100;}
+.logo-text{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.02em;}
+.logo-text span{color:var(--blue);}
+.header-sub{font-size:10px;color:var(--text2);margin-top:1px;}
+.header-stats{display:flex;gap:20px;}
+.hstat{text-align:center;}
+.hstat-n{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--blue);line-height:1;}
+.hstat-l{font-size:10px;color:var(--text2);margin-top:2px;}
+
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface);padding:0 24px;}
+.tab{padding:10px 18px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;user-select:none;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue);}
+
+.app{display:flex;flex-direction:column;height:calc(100vh - 125px);}
+.dashboard{padding:18px 24px 14px;background:var(--surface);border-bottom:1px solid var(--border);display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr;gap:14px;}
+.card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;}
+.card-label{font-size:10px;color:var(--text2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;}
+
+.char-bars{display:flex;flex-direction:column;gap:5px;}
+.cbar-row{display:grid;grid-template-columns:120px 1fr 28px;align-items:center;gap:6px;}
+.cbar-label{font-size:9.5px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cbar-label.top{color:var(--accent);font-weight:600;}
+.cbar-track{height:7px;background:var(--border);border-radius:3px;overflow:hidden;}
+.cbar-fill{height:100%;border-radius:3px;transition:width 0.6s cubic-bezier(.4,0,.2,1);}
+.cbar-n{font-size:9px;color:var(--text2);text-align:right;}
+.cbar-n.top{color:var(--accent);font-weight:600;}
+
+.donut-wrap{display:flex;align-items:center;gap:12px;}
+.donut-legend{display:flex;flex-direction:column;gap:5px;flex:1;}
+.dl-item{display:flex;align-items:center;gap:6px;font-size:10px;}
+.dl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.dl-pct{margin-left:auto;font-weight:600;font-size:11px;}
+
+.align-stacked{height:22px;border-radius:4px;overflow:hidden;display:flex;margin-bottom:8px;}
+.align-seg{height:100%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;}
+.align-legend-row{display:flex;gap:8px;flex-wrap:wrap;}
+.al-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2);}
+.al-dot{width:8px;height:8px;border-radius:2px;}
+
+.act-pills{display:flex;flex-direction:column;gap:6px;}
+.act-pill{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:7px 10px;cursor:pointer;transition:border-color .15s;}
+.act-pill:hover{border-color:var(--blue);}
+.act-pill.active{border-color:var(--blue);background:var(--blue-soft);}
+.act-pill-left{display:flex;align-items:center;gap:8px;}
+.act-badge-sm{width:22px;height:22px;border-radius:4px;background:var(--navy);color:var(--gold);font-family:'Syne',sans-serif;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.act-pill-name{font-size:11px;color:var(--text);font-weight:500;}
+.act-pill-n{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--blue);}
+
+.progress-strip{padding:10px 24px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.prog-bar-wrap{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden;min-width:180px;}
+.prog-bar-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--teal));border-radius:4px;transition:width 0.4s;}
+
+.dash-lower{flex:1;overflow:auto;padding:18px 24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;align-content:start;}
+.section-title{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;}
+
+.filter-bar{display:flex;align-items:center;gap:8px;padding:10px 24px;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.filter-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.1em;}
+.filter-select{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:4px 8px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;outline:none;}
+.filter-select:focus{border-color:var(--blue);}
+.search-input{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:4px 10px;font-family:'DM Mono',monospace;font-size:11px;outline:none;width:180px;}
+.search-input:focus{border-color:var(--blue);}
+.filter-results{margin-left:auto;font-size:11px;color:var(--text2);}
+.btn{padding:5px 12px;border-radius:5px;border:1px solid;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;transition:all .15s;}
+.btn-primary{background:var(--blue);border-color:var(--blue);color:#fff;}
+.btn-primary:hover{background:#2d5de0;}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--text2);}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue);}
+.btn-sm{padding:3px 9px;font-size:10px;}
+
+.table-wrap{flex:1;overflow:auto;}
+table{width:100%;border-collapse:collapse;}
+th{background:var(--surface2);color:var(--text2);font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;padding:8px 10px;text-align:left;position:sticky;top:0;z-index:10;border-bottom:1px solid var(--border);white-space:nowrap;}
+td{padding:0;border-bottom:1px solid rgba(42,51,72,0.5);vertical-align:top;}
+tr:hover td{background:rgba(30,37,53,0.4);}
+tr.editing td{background:rgba(26,63,187,0.07);}
+.cell{padding:8px 10px;}
+
+.response-text{font-family:'Lora',serif;font-size:12px;color:var(--text);line-height:1.55;max-width:360px;}
+.response-text.trunc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.expand-btn{font-size:10px;color:var(--blue);cursor:pointer;margin-top:2px;display:inline-block;}
+
+.pill{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600;white-space:nowrap;}
+.pill-Stockholm{background:#1a2a4a;color:#7ab3ff;}
+.pill-Nairobi{background:#1a3a2a;color:#7affc8;}
+.pill-Singapore{background:#2a1a3a;color:#c8a0ff;}
+
+.status-pill{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500;white-space:nowrap;}
+.sp-pending{background:var(--pending-bg);color:var(--pending);}
+.sp-confirmed{background:var(--positive-bg);color:var(--positive);}
+.sp-revised{background:var(--ambiguous-bg);color:var(--ambiguous);}
+.sp-flagged{background:var(--negative-bg);color:var(--negative);}
+
+.align-pill{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500;white-space:nowrap;}
+.ap-Full{background:var(--full-bg);color:#4ade80;}
+.ap-Partial{background:var(--partial-bg);color:#fbbf24;}
+.ap-Not-aligned{background:var(--notaligned-bg);color:#f87171;}
+.ap-Emergent{background:var(--emergent-bg);color:#a78bfa;}
+.ap-Pending{background:var(--pending-bg);color:var(--pending);}
+
+.sent-pill{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500;white-space:nowrap;}
+.sent-Positive{background:var(--positive-bg);color:var(--positive);}
+.sent-Negative{background:var(--negative-bg);color:var(--negative);}
+.sent-Ambiguous{background:var(--ambiguous-bg);color:var(--ambiguous);}
+.sent-Neutral{background:var(--neutral-bg);color:var(--neutral);}
+
+.char-tag{display:inline-block;background:var(--blue-soft);color:#90b8ff;border:1px solid #2a4a90;border-radius:4px;font-size:9.5px;padding:1px 6px;margin:1px 2px 1px 0;white-space:nowrap;}
+
+.edit-panel{padding:14px 16px;border-top:1px solid var(--border);}
+.edit-header{font-size:11px;color:var(--gold);margin-bottom:10px;font-weight:600;}
+.edit-quote{font-family:'Lora',serif;font-size:12px;color:var(--text);line-height:1.5;margin-bottom:12px;padding:10px 14px;background:var(--surface);border-radius:6px;border-left:3px solid var(--blue);}
+.edit-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
+.edit-group{display:flex;flex-direction:column;gap:3px;}
+.edit-label{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:0.1em;}
+.edit-select,.edit-textarea{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:5px 8px;font-family:'DM Mono',monospace;font-size:11px;outline:none;width:100%;}
+.edit-select:focus,.edit-textarea:focus{border-color:var(--blue);}
+.edit-textarea{resize:vertical;min-height:52px;}
+.edit-actions{display:flex;gap:8px;align-items:center;}
+.save-ok{font-size:10px;color:var(--green);opacity:0;transition:opacity .3s;margin-left:6px;}
+.save-ok.show{opacity:1;}
+
+.emergent-card{background:var(--emergent-bg);border:1px solid var(--purple);border-radius:6px;padding:10px 12px;cursor:pointer;margin-bottom:7px;}
+.emergent-card:hover{border-color:#a78bfa;}
+
+/* ABOUT TAB */
+.about-wrap{flex:1;overflow:auto;padding:32px 48px;max-width:900px;}
+.about-wrap h2{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--text);margin-bottom:12px;margin-top:28px;}
+.about-wrap h2:first-child{margin-top:0;}
+.about-wrap p{font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;}
+.about-wrap ul{margin:0 0 12px 20px;}
+.about-wrap li{font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:4px;}
+.about-tag{display:inline-block;background:var(--blue-soft);color:#90b8ff;border:1px solid #2a4a90;border-radius:4px;font-size:10px;padding:2px 8px;margin:2px;}
+.cost-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:14px 0;}
+.cost-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center;}
+.cost-card .cost-n{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--green);margin-bottom:4px;}
+.cost-card .cost-l{font-size:11px;color:var(--text2);}
+.about-demo-note{background:rgba(212,168,67,0.1);border:1px solid rgba(212,168,67,0.3);border-radius:6px;padding:12px 16px;margin-bottom:20px;font-size:11px;color:#d4a843;line-height:1.6;}
+
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<div class="demo-banner">
+  <strong>⚠ DEMO VERSION</strong>
+  All participant responses are fictional. This version demonstrates the tool's functionality using manufactured data. The real dataset is not included.
+</div>
+
+<div class="header">
+  <div>
+    <div class="logo-text">TAI <span>Coding</span></div>
+    <div class="header-sub">Trustworthy AI in Healthcare · Yathiqu Project · Demo Version</div>
+  </div>
+  <div class="header-stats">
+    <div class="hstat"><div class="hstat-n" id="hs-total">—</div><div class="hstat-l">Responses</div></div>
+    <div class="hstat"><div class="hstat-n" id="hs-confirmed" style="color:var(--green)">—</div><div class="hstat-l">Confirmed</div></div>
+    <div class="hstat"><div class="hstat-n" id="hs-flagged" style="color:var(--accent)">—</div><div class="hstat-l">Flagged</div></div>
+    <div class="hstat"><div class="hstat-n" id="hs-emergent" style="color:var(--purple)">—</div><div class="hstat-l">Emergent</div></div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('dashboard')">📊 Dashboard</div>
+  <div class="tab" onclick="switchTab('coding')">✎ Coding Table</div>
+  <div class="tab" onclick="switchTab('about')">ℹ About this Tool</div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="app" id="tab-dashboard">
+  <div class="dashboard">
+    <div class="card">
+      <div class="card-label">Characteristic Frequency</div>
+      <div class="char-bars" id="char-bars"></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Sentiment</div>
+      <div class="donut-wrap">
+        <svg width="76" height="76" viewBox="0 0 76 76" id="donut-svg"></svg>
+        <div class="donut-legend" id="donut-legend"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Alignment (Act II)</div>
+      <div class="align-stacked" id="align-stacked"></div>
+      <div class="align-legend-row" id="align-legend"></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Filter by Activity</div>
+      <div class="act-pills" id="act-pills"></div>
+    </div>
+  </div>
+  <div class="progress-strip">
+    <span style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.1em;">Review Progress</span>
+    <div class="prog-bar-wrap"><div class="prog-bar-fill" id="prog-fill" style="width:0%"></div></div>
+    <span id="prog-label" style="font-size:11px;color:var(--text2);">0 / 0 confirmed</span>
+    <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+    <button class="btn btn-ghost btn-sm" onclick="renderAll()">↻ Refresh</button>
+  </div>
+  <div class="dash-lower">
+    <div>
+      <div class="section-title">Emergent Themes Detected</div>
+      <div id="emergent-list"></div>
+    </div>
+    <div>
+      <div class="section-title">Recently Coded</div>
+      <div id="recent-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CODING TABLE -->
+<div class="app" id="tab-coding" style="display:none;">
+  <div class="filter-bar">
+    <span class="filter-label">Filter:</span>
+    <select class="filter-select" id="f-activity" onchange="applyFilters()">
+      <option value="">All Activities</option>
+      <option value="I">Act I — Colors</option>
+      <option value="II">Act II — Definitions</option>
+      <option value="III">Act III — Top 3</option>
+      <option value="IV">Act IV — Votes</option>
+      <option value="VI">Act VI — Archetypes</option>
+    </select>
+    <select class="filter-select" id="f-city" onchange="applyFilters()">
+      <option value="">All Cities</option>
+      <option value="Stockholm">Stockholm</option>
+      <option value="Nairobi">Nairobi</option>
+      <option value="Singapore">Singapore</option>
+    </select>
+    <select class="filter-select" id="f-sentiment" onchange="applyFilters()">
+      <option value="">All Sentiments</option>
+      <option value="Positive">Positive</option>
+      <option value="Negative">Negative</option>
+      <option value="Ambiguous">Ambiguous</option>
+      <option value="Neutral">Neutral</option>
+    </select>
+    <select class="filter-select" id="f-align" onchange="applyFilters()">
+      <option value="">All Alignments</option>
+      <option value="Full">Full</option>
+      <option value="Partial">Partial</option>
+      <option value="Not aligned">Not aligned</option>
+      <option value="Emergent">Emergent</option>
+    </select>
+    <select class="filter-select" id="f-status" onchange="applyFilters()">
+      <option value="">All Statuses</option>
+      <option value="Pending review">Pending review</option>
+      <option value="Confirmed">Confirmed</option>
+      <option value="Revised">Revised</option>
+      <option value="Flagged">Flagged</option>
+    </select>
+    <input class="search-input" id="f-search" placeholder="Search text…" oninput="applyFilters()">
+    <span class="filter-results" id="filter-results">120 rows</span>
+    <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Clear</button>
+    <button class="btn btn-primary btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th style="width:36px">#</th>
+        <th style="width:48px">Act.</th>
+        <th style="width:95px">City</th>
+        <th style="width:100px">Role</th>
+        <th>Response Text</th>
+        <th style="width:130px">Char 1</th>
+        <th style="width:78px">Align 1</th>
+        <th style="width:130px">Char 2</th>
+        <th style="width:78px">Align 2</th>
+        <th style="width:92px">Sentiment</th>
+        <th style="width:90px">Status</th>
+        <th style="width:36px"></th>
+      </tr></thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<div class="app" id="tab-about" style="display:none;">
+  <div style="flex:1;overflow:auto;padding:32px 48px;">
+  <div style="max-width:860px;">
+
+    <div class="about-demo-note">
+      ⚠ You are viewing the <strong>demo version</strong> of the TAI Coding Tool. All participant responses shown are fictional and created for demonstration purposes only. The real project data is stored securely and accessible only to the research team.
+    </div>
+
+    <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--text);margin-bottom:6px;">What is this tool?</h2>
+    <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:16px;">
+      This is a purpose-built qualitative coding environment developed for the Yathiqu project. It allows a research team to systematically code workshop responses against the 10-characteristic Trustworthy AI (TAI) taxonomy, track review progress, and visualise results — all in real time, from any device, with no software to install.
+    </p>
+
+    <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin:24px 0 8px;">Why did we build it instead of buying software?</h2>
+    <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px;">
+      Commercial qualitative data analysis tools (such as NVivo, ATLAS.ti, or MAXQDA) are powerful but come with significant constraints for a project like this:
+    </p>
+    <ul style="margin:0 0 12px 20px;">
+      <li style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:4px;"><strong style="color:var(--text);">Cost:</strong> per-seat annual licences typically range from €300–€800 per researcher per year.</li>
+      <li style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:4px;"><strong style="color:var(--text);">Collaboration:</strong> most tools are desktop-based and do not support live multi-user editing on shared data.</li>
+      <li style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:4px;"><strong style="color:var(--text);">Flexibility:</strong> generic tools are not designed around the specific coding scheme, framework, or workflow of any one project.</li>
+      <li style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:4px;"><strong style="color:var(--text);">Live results:</strong> no commercial tool provides a live dashboard that updates as coding decisions are made.</li>
+    </ul>
+    <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:16px;">
+      By building a custom tool, we retained full control over the coding scheme, made collaboration seamless across international sites, and produced live analytical outputs — at zero recurring cost.
+    </p>
+
+    <div class="cost-row">
+      <div class="cost-card">
+        <div class="cost-n">€0</div>
+        <div class="cost-l">Total cost<br>per year</div>
+      </div>
+      <div class="cost-card">
+        <div class="cost-n">∞</div>
+        <div class="cost-l">Reviewers<br>supported</div>
+      </div>
+      <div class="cost-card">
+        <div class="cost-n">Live</div>
+        <div class="cost-l">Dashboard<br>updates</div>
+      </div>
+    </div>
+
+    <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin:24px 0 8px;">How was it built?</h2>
+    <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px;">
+      The tool is built entirely from free, open-source components. A researcher with basic technical knowledge can reproduce it without specialist infrastructure or commercial software licences.
+    </p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
+        <div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Database</div>
+        <div style="font-size:12px;color:var(--text);font-weight:600;margin-bottom:4px;">Supabase (PostgreSQL)</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.5;">Cloud database with a free tier. Stores all responses and coding decisions. Accessible via a standard REST API. Free up to 500MB — more than sufficient for workshop data.</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
+        <div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Frontend</div>
+        <div style="font-size:12px;color:var(--text);font-weight:600;margin-bottom:4px;">Plain HTML / JavaScript</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.5;">A single HTML file. No framework, no build tools, no dependencies. Reads and writes to Supabase directly from the browser. Can be opened locally or hosted online.</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
+        <div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Hosting</div>
+        <div style="font-size:12px;color:var(--text);font-weight:600;margin-bottom:4px;">GitHub Pages</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.5;">Free static site hosting. Upload the HTML file to a GitHub repository and it is available at a permanent public URL within minutes. No server required.</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;">
+        <div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Data preparation</div>
+        <div style="font-size:12px;color:var(--text);font-weight:600;margin-bottom:4px;">Python</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.5;">Used once to convert raw CSV files from the workshop data collection system into database records, preparing the data for systematic human review.</div>
+      </div>
+    </div>
+
+    <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin:24px 0 8px;">What does it do?</h2>
+    <ul style="margin:0 0 16px 20px;">
+      <li style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px;"><strong style="color:var(--text);">Three-dimensional coding</strong> — each response is coded for which TAI characteristic it references, how well it aligns with the formal definition (Full / Partial / Not aligned / Emergent), and the participant's sentiment toward AI.</li>
+
+      <li style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px;"><strong style="color:var(--text);">Live dashboard</strong> — characteristic frequency, sentiment distribution, and alignment breakdown update in real time as coding decisions are saved.</li>
+      <li style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px;"><strong style="color:var(--text);">Emergent theme detection</strong> — responses that do not fit any existing characteristic are automatically surfaced, signalling potential gaps in the theoretical framework.</li>
+      <li style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px;"><strong style="color:var(--text);">Multi-user collaboration</strong> — any number of reviewers can work simultaneously. Changes are visible to all users immediately.</li>
+      <li style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:6px;"><strong style="color:var(--text);">CSV export</strong> — the full coded dataset can be exported at any point for further analysis in R, Python, or any statistical software.</li>
+    </ul>
+
+    <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin:24px 0 8px;">Can other projects use it?</h2>
+    <p style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:10px;">
+      Yes. The tool is designed to be adaptable. Any project using a predefined coding framework — academic integrity, AI ethics, patient safety, education research — can replace the TAI characteristics with its own codes and deploy the same system. The core infrastructure (Supabase + GitHub Pages + Python) remains identical.
+    </p>
+
+    <div style="margin-top:28px;padding:14px 18px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;">
+      <div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">Tech stack</div>
+      <div>
+        <span class="about-tag">Supabase</span>
+        <span class="about-tag">PostgreSQL</span>
+        <span class="about-tag">GitHub Pages</span>
+        <span class="about-tag">HTML / CSS / JS</span>
+        <span class="about-tag">Python 3</span>
+        <span class="about-tag">REST API</span>
+        <span class="about-tag">Zero cost</span>
+        <span class="about-tag">No licence required</span>
+      </div>
+    </div>
+
+  </div>
+  </div>
+</div>
+
+<script>
+const CHARS={1:"Beneficial AI",2:"Reliable AI",3:"Secure AI systems",4:"Accountable AI",5:"Future-Proof AI",6:"Human-in-the-loop",7:"Privacy-Enabled AI",8:"Responsible AI",9:"Explainable AI",10:"Value-Aligned AI"};
+const SUBCHS={1:{c:1,d:"AI designed to do good and for wellbeing equitably"},2:{c:1,d:"AI prioritizes welfare and benefits of the public"},3:{c:1,d:"AI system minimizes environmental harm"},4:{c:1,d:"Other (Beneficial)"},5:{c:3,d:"Protected from bad actors"},6:{c:3,d:"Managed for unintended actions through rigorous testing"},7:{c:3,d:"Third party actors monitored for security compliance"},8:{c:3,d:"Other (Secure)"},9:{c:5,d:"System has resilience to recover from errors"},10:{c:5,d:"System planned for scalability"},11:{c:5,d:"AI and human teams respond quickly to user needs"},12:{c:5,d:"Other (Future-Proof)"},13:{c:8,d:"Respects and upholds universal human rights"},14:{c:8,d:"Complies with regulations and laws"},15:{c:8,d:"Protects sustainability and flourishing of the planet"},16:{c:8,d:"Ensures privacy and security of personal data"},17:{c:8,d:"Takes local culture or language into consideration"},18:{c:8,d:"Other (Responsible)"},19:{c:10,d:"Transparent acknowledgment of purpose of AI system"},20:{c:10,d:"Model behavior aligns with human ethical and professional values"},21:{c:10,d:"System allows for ethical judgements in treatment"},22:{c:10,d:"Other (Value-Aligned)"},23:{c:6,d:"Human has more autonomy than the machine"},24:{c:6,d:"Human has authority to make decisions on AI systems"},25:{c:6,d:"AI systems designed to allow human agency"},26:{c:6,d:"Other (Human-in-the-loop)"},27:{c:2,d:"Results have low error rate, openly declared"},28:{c:2,d:"AI reproduces results across cultural contexts and demographics"},29:{c:2,d:"AI results consistent across time for same conditions"},30:{c:2,d:"Other (Reliable)"},31:{c:7,d:"Health data and rights belongs to the patient"},32:{c:7,d:"Individual has right to know who accesses data and conditions"},33:{c:7,d:"Transparent consent guidelines on how health data is used"},34:{c:7,d:"Other (Privacy)"},35:{c:4,d:"Clearance on who is responsible for what"},36:{c:4,d:"Auditable AI processes and decisions"},37:{c:4,d:"Clear, accessible and usable policies for ethical AI governance"},38:{c:4,d:"Other (Accountable)"},39:{c:9,d:"Explicitly justify decisions/outcomes with limitations"},40:{c:9,d:"Operations understood and interpreted easily by intended users"},41:{c:9,d:"Clarity to observers on how the system produces results"},42:{c:9,d:"Other (Explainable)"}};
+
+let data = [{"id": 2000, "activity": "I", "city": "Stockholm", "role": "Participant", "text": "Color: Blue \u2014 Blue is calm, reliable, and trustworthy \u2014 exactly what we need from AI in healthcare.", "char1": null, "sub1": null, "align1": null, "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Color metaphor \u2014 sentiment coded only", "status": "Pending review", "vote_count": 1}, {"id": 2001, "activity": "I", "city": "Stockholm", "role": "Participant", "text": "Color: Green \u2014 Green represents growth and healing. AI should contribute to both.", "char1": null, "sub1": null, "align1": null, "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Color metaphor \u2014 sentiment coded only", "status": "Pending review", "vote_count": 1}, {"id": 2002, "activity": "I", "city": "Stockholm", "role": "Participant", "text": "Color: Red \u2014 Red is a warning. We should proceed with caution \u2014 the risks are real.", "char1": null, "sub1": null, "align1": null, "char2": null, "sub2": null, "align2": null, "sentiment": "Ambiguous", "notes": "Color metaphor \u2014 sentiment coded only", "status": "Pending review", "vote_count": 1}, {"id": 2003, "activity": "I", "city": "Stockholm", "role": "Participant", "text": "Color: White \u2014 White represents clarity and transparency. We need both from AI.", "char1": null, "sub1": null, "align1": null, "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Color metaphor \u2014 sentiment coded only", "status": "Pending review", "vote_count": 1}, {"id": 2004, "activity": "I", "city": "Stockholm", "role": "Participant", "text": "Color: Grey \u2014 Grey \u2014 because nothing is black and white. AI is full of complexity and uncertainty.", "char1": null, "sub1": null, "align1": null, "char2": null, "sub2": null, "align2": null, "sentiment": "Ambiguous", "notes": "Color metaphor \u2014 sentiment coded only", "status": "Pending review", "vote_count": 1}, {"id": 2005, "activity": "I", "city": "Stockholm", "role": "Participant", "text": "Color: Yellow \u2014 Caution. AI in healthcare needs guardrails before we move faster.", "char1": null, "sub1": null, "align1": null, "char2": null, "sub2": null, "align2": null, "sentiment": "Ambiguous", "notes": "Color metaphor \u2014 sentiment coded only", "status": "Pending review", "vote_count": 1}, {"id": 2006, "activity": "I", "city": "Nairobi", "role": "Participant", "text": "Color: Orange \u2014 Orange is warm and energetic. If AI is designed well, it can bring real energy to healthcare.", "char1": null, "sub1": null, "align1": null, "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Color metaphor \u2014 sentiment coded only", "status": "Pending review", "vote_count": 1}, {"id": 2007, "activity": "I", "city": "Nairobi", "role": "Participant", "text": "Color: Purple \u2014 Purple is both powerful and mysterious. AI has incredible potential but we do not fully understand it yet.", "char1": null, "sub1": null, "align1": null, "char2": null, "sub2": null, "align2": null, "sentiment": "Ambiguous", "notes": "Color metaphor \u2014 sentiment coded only", "status": "Pending review", "vote_count": 1}, {"id": 2008, "activity": "I", "city": "Nairobi", "role": "Participant", "text": "Color: Brown \u2014 Brown is grounded, rooted. AI must be grounded in the reality of patients' lives, not just lab results.", "char1": null, "sub1": null, "align1": null, "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Color metaphor \u2014 sentiment coded only", "status": "Pending review", "vote_count": 1}, {"id": 2009, "activity": "I", "city": "Nairobi", "role": "Participant", "text": "Color: Black \u2014 Black, because AI without oversight is a black box \u2014 and black boxes are dangerous in medicine.", "char1": null, "sub1": null, "align1": null, "char2": null, "sub2": null, "align2": null, "sentiment": "Negative", "notes": "Color metaphor \u2014 sentiment coded only", "status": "Pending review", "vote_count": 1}, {"id": 2010, "activity": "I", "city": "Nairobi", "role": "Participant", "text": "Color: Green \u2014 Green for growth, but also for caution \u2014 like a traffic light. We should proceed, but carefully.", "char1": null, "sub1": null, "align1": null, "char2": null, "sub2": null, "align2": null, "sentiment": "Ambiguous", "notes": "Color metaphor \u2014 sentiment coded only", "status": "Pending review", "vote_count": 1}, {"id": 2011, "activity": "I", "city": "Nairobi", "role": "Participant", "text": "Color: Blue \u2014 Blue for reliability. In healthcare, reliability is everything.", "char1": null, "sub1": null, "align1": null, "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Color metaphor \u2014 sentiment coded only", "status": "Pending review", "vote_count": 1}, {"id": 2012, "activity": "I", "city": "Nairobi", "role": "Participant", "text": "Color: Red \u2014 Red for stop. We are moving too fast. Patients are not ready for this.", "char1": null, "sub1": null, "align1": null, "char2": null, "sub2": null, "align2": null, "sentiment": "Negative", "notes": "Color metaphor \u2014 sentiment coded only", "status": "Pending review", "vote_count": 1}, {"id": 2013, "activity": "I", "city": "Singapore", "role": "Participant", "text": "Color: Silver \u2014 Silver \u2014 like surgical instruments. Precise, sterile, purposeful. AI should be the same.", "char1": null, "sub1": null, "align1": null, "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Color metaphor \u2014 sentiment coded only", "status": "Pending review", "vote_count": 1}, {"id": 2014, "activity": "I", "city": "Singapore", "role": "Participant", "text": "Color: Blue \u2014 The colour of calm and trust. Healthcare AI must inspire both.", "char1": null, "sub1": null, "align1": null, "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Color metaphor \u2014 sentiment coded only", "status": "Pending review", "vote_count": 1}, {"id": 2015, "activity": "I", "city": "Singapore", "role": "Participant", "text": "Color: Gold \u2014 Gold for value. AI must deliver real value, not just impressive demos.", "char1": null, "sub1": null, "align1": null, "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Color metaphor \u2014 sentiment coded only", "status": "Pending review", "vote_count": 1}, {"id": 2016, "activity": "I", "city": "Singapore", "role": "Participant", "text": "Color: White \u2014 Clean, clear, evidence-based. That is what AI in healthcare should be.", "char1": null, "sub1": null, "align1": null, "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Color metaphor \u2014 sentiment coded only", "status": "Pending review", "vote_count": 1}, {"id": 2017, "activity": "I", "city": "Singapore", "role": "Participant", "text": "Color: Teal \u2014 Teal combines the reliability of blue with the growth of green. That is the balance we need.", "char1": null, "sub1": null, "align1": null, "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Color metaphor \u2014 sentiment coded only", "status": "Pending review", "vote_count": 1}, {"id": 2018, "activity": "I", "city": "Singapore", "role": "Participant", "text": "Color: Orange \u2014 Warm but alert. AI should feel approachable but keep us vigilant.", "char1": null, "sub1": null, "align1": null, "char2": null, "sub2": null, "align2": null, "sentiment": "Ambiguous", "notes": "Color metaphor \u2014 sentiment coded only", "status": "Pending review", "vote_count": 1}, {"id": 2019, "activity": "I", "city": "Singapore", "role": "Participant", "text": "Color: Red \u2014 Red because the stakes are high. Every decision AI influences could affect someone's life.", "char1": null, "sub1": null, "align1": null, "char2": null, "sub2": null, "align2": null, "sentiment": "Ambiguous", "notes": "Color metaphor \u2014 sentiment coded only", "status": "Pending review", "vote_count": 1}, {"id": 1, "activity": "II", "city": "Stockholm", "role": "Doctor", "text": "Trustworthy AI in healthcare must always keep a doctor in the loop. It can suggest, but only a human should decide on treatment.", "char1": 6, "sub1": 24, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "HITL \u2014 human authority explicit", "status": "Confirmed", "vote_count": 1}, {"id": 2, "activity": "II", "city": "Stockholm", "role": "Nurse", "text": "I work with AI tools every day. What makes them trustworthy is when I can override them \u2014 and when they explain why they flagged something.", "char1": 6, "sub1": 25, "align1": "Full", "char2": 9, "sub2": 39, "align2": "Full", "sentiment": "Positive", "notes": "HITL + Explainable \u2014 dual full alignment", "status": "Confirmed", "vote_count": 1}, {"id": 3, "activity": "II", "city": "Stockholm", "role": "Patient", "text": "My medical data is mine. Any AI using it should ask for my consent and tell me exactly what it will be used for.", "char1": 7, "sub1": 31, "align1": "Full", "char2": 7, "sub2": 33, "align2": "Full", "sentiment": "Positive", "notes": "Privacy \u2014 data ownership + consent", "status": "Confirmed", "vote_count": 1}, {"id": 4, "activity": "II", "city": "Stockholm", "role": "AI Developer", "text": "For me, trustworthy means the AI performs consistently. If it gives different results for the same case depending on the day, it cannot be trusted.", "char1": 2, "sub1": 29, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Reliable AI \u2014 consistency explicit", "status": "Confirmed", "vote_count": 1}, {"id": 5, "activity": "II", "city": "Stockholm", "role": "Policy Maker", "text": "We need clear accountability chains. When an AI system makes an error in healthcare, someone must be responsible. Right now that is unclear.", "char1": 4, "sub1": 35, "align1": "Full", "char2": 4, "sub2": 36, "align2": "Full", "sentiment": "Ambiguous", "notes": "Accountable AI \u2014 responsibility + audit", "status": "Confirmed", "vote_count": 1}, {"id": 6, "activity": "II", "city": "Stockholm", "role": "Administrator", "text": "AI should simplify our workflows without putting patients at risk. The benefits must clearly outweigh the risks before any deployment.", "char1": 1, "sub1": 2, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Beneficial AI", "status": "Confirmed", "vote_count": 1}, {"id": 7, "activity": "II", "city": "Stockholm", "role": "Researcher", "text": "I am sceptical. In my field we have seen many AI systems that looked impressive in testing but failed in real clinical settings. Reliability is everything.", "char1": 2, "sub1": 27, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Negative", "notes": "Reliable AI \u2014 sceptical, research-based distrust", "status": "Confirmed", "vote_count": 1}, {"id": 8, "activity": "II", "city": "Stockholm", "role": "Pharmacist", "text": "The AI must never operate without a pharmacist review for medication decisions. Full stop. The stakes are too high.", "char1": 6, "sub1": 23, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Ambiguous", "notes": "HITL \u2014 strong human autonomy stance", "status": "Confirmed", "vote_count": 1}, {"id": 9, "activity": "II", "city": "Stockholm", "role": "Doctor", "text": "Trustworthy AI is one that can explain its reasoning in plain language \u2014 not just give me a result but show me how it got there.", "char1": 9, "sub1": 40, "align1": "Full", "char2": 9, "sub2": 39, "align2": "Full", "sentiment": "Positive", "notes": "Explainable AI \u2014 interpretability + justification", "status": "Confirmed", "vote_count": 1}, {"id": 10, "activity": "II", "city": "Stockholm", "role": "AI Developer", "text": "Security is non-negotiable. Hospital systems are prime targets for cyberattacks. AI must be built to resist them from the ground up.", "char1": 3, "sub1": 5, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Secure AI systems", "status": "Confirmed", "vote_count": 1}, {"id": 11, "activity": "II", "city": "Nairobi", "role": "Doctor", "text": "In our context, AI must understand local disease patterns and cultural norms around health. A system trained only on Western data will not serve our patients.", "char1": 8, "sub1": 17, "align1": "Full", "char2": 2, "sub2": 28, "align2": "Full", "sentiment": "Positive", "notes": "Responsible AI (culture) + Reliable AI (cross-demographic)", "status": "Confirmed", "vote_count": 1}, {"id": 12, "activity": "II", "city": "Nairobi", "role": "Nurse", "text": "I trust AI when it helps me spend more time with patients instead of paperwork. But it must never make me feel like I am just checking its work.", "char1": 1, "sub1": 2, "align1": "Partial", "char2": 6, "sub2": 23, "align2": "Partial", "sentiment": "Ambiguous", "notes": "Beneficial + HITL \u2014 partial; dependency concern is emergent", "status": "Confirmed", "vote_count": 1}, {"id": 13, "activity": "II", "city": "Nairobi", "role": "Patient", "text": "Who has access to my health records? I never know. Any AI using my data must give me a simple, clear answer to that question.", "char1": 7, "sub1": 32, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Ambiguous", "notes": "Privacy \u2014 access transparency; distrust of current systems", "status": "Confirmed", "vote_count": 1}, {"id": 14, "activity": "II", "city": "Nairobi", "role": "Policy Maker", "text": "Our priority is equity. AI in healthcare must reach rural communities and not just urban hospitals. Otherwise it deepens existing inequalities.", "char1": 1, "sub1": 1, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Beneficial AI \u2014 equitable access, strong alignment", "status": "Confirmed", "vote_count": 1}, {"id": 15, "activity": "II", "city": "Nairobi", "role": "AI Developer", "text": "I build healthcare AI. Trustworthiness means the model works just as well for a patient in Nairobi as for one in London. Bias in training data is our biggest problem.", "char1": 2, "sub1": 28, "align1": "Full", "char2": 8, "sub2": 17, "align2": "Full", "sentiment": "Positive", "notes": "Reliable AI (cross-demographic) + Responsible AI (culture)", "status": "Confirmed", "vote_count": 1}, {"id": 16, "activity": "II", "city": "Nairobi", "role": "Administrator", "text": "The system must be auditable. When something goes wrong \u2014 and it will \u2014 we need to be able to trace exactly what the AI did and why.", "char1": 4, "sub1": 36, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Accountable AI \u2014 auditability", "status": "Confirmed", "vote_count": 1}, {"id": 17, "activity": "II", "city": "Nairobi", "role": "Researcher", "text": "AI cannot replace the human judgement that comes from looking a patient in the eye. Empathy and compassion are not things a machine can replicate.", "char1": null, "sub1": null, "align1": "Emergent", "char2": null, "sub2": null, "align2": null, "sentiment": "Negative", "notes": "Emergent: compassionate/empathetic AI \u2014 not in taxonomy", "status": "Confirmed", "vote_count": 1}, {"id": 18, "activity": "II", "city": "Nairobi", "role": "Doctor", "text": "It must be honest about what it does not know. An AI that confidently gives a wrong answer is more dangerous than one that says it is uncertain.", "char1": 9, "sub1": 39, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Explainable AI \u2014 uncertainty acknowledgement", "status": "Confirmed", "vote_count": 1}, {"id": 19, "activity": "II", "city": "Nairobi", "role": "Patient", "text": "I do not understand how AI works and I should not have to. It must be simple enough for me to know what it is doing with my health information.", "char1": 9, "sub1": 40, "align1": "Full", "char2": 7, "sub2": 31, "align2": "Partial", "sentiment": "Positive", "notes": "Explainable AI (usability) + Privacy (partial)", "status": "Confirmed", "vote_count": 1}, {"id": 20, "activity": "II", "city": "Nairobi", "role": "Nurse", "text": "There is no trustworthy AI in healthcare yet. Not where I work. The infrastructure is not there. The training is not there. The trust is not there.", "char1": null, "sub1": null, "align1": "Not aligned", "char2": null, "sub2": null, "align2": null, "sentiment": "Negative", "notes": "Complete rejection \u2014 context-specific (infrastructure gap)", "status": "Confirmed", "vote_count": 1}, {"id": 21, "activity": "II", "city": "Singapore", "role": "Doctor", "text": "The AI must adapt as medical knowledge evolves. A system trained on 2020 data is already out of date. Trustworthy AI must be continuously updated.", "char1": 5, "sub1": 10, "align1": "Full", "char2": 5, "sub2": 9, "align2": "Partial", "sentiment": "Positive", "notes": "Future-Proof AI \u2014 scalability + resilience", "status": "Confirmed", "vote_count": 1}, {"id": 22, "activity": "II", "city": "Singapore", "role": "Nurse", "text": "I want to know who is responsible when AI gives a wrong diagnosis. Not the hospital, not the vendor \u2014 someone specific must be accountable.", "char1": 4, "sub1": 35, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Ambiguous", "notes": "Accountable AI \u2014 responsibility; frustration with ambiguity", "status": "Confirmed", "vote_count": 1}, {"id": 23, "activity": "II", "city": "Singapore", "role": "Patient", "text": "AI should be a tool for the doctor, not a replacement. My doctor knows my history, my family, my fears. A machine does not.", "char1": 6, "sub1": 25, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "HITL \u2014 human agency; relational dimension emergent", "status": "Confirmed", "vote_count": 1}, {"id": 24, "activity": "II", "city": "Singapore", "role": "AI Developer", "text": "Trustworthiness is built on transparency. If I cannot explain to a clinician how my model makes a decision, I should not deploy it in a clinical setting.", "char1": 9, "sub1": 41, "align1": "Full", "char2": 19, "sub2": null, "align2": "Full", "sentiment": "Positive", "notes": "Explainable AI (observers) + Value-Aligned AI (transparency of purpose)", "status": "Confirmed", "vote_count": 1}, {"id": 25, "activity": "II", "city": "Singapore", "role": "Policy Maker", "text": "We must govern AI before it governs us. That means regulations, standards, and enforcement \u2014 not voluntary guidelines that companies can ignore.", "char1": 8, "sub1": 14, "align1": "Full", "char2": 4, "sub2": 37, "align2": "Full", "sentiment": "Positive", "notes": "Responsible AI (regulation) + Accountable AI (policy)", "status": "Confirmed", "vote_count": 1}, {"id": 26, "activity": "II", "city": "Singapore", "role": "Health NGO", "text": "Trustworthy AI must serve the most vulnerable patients, not the most profitable cases. If it optimises for efficiency over equity, it is not trustworthy.", "char1": 1, "sub1": 1, "align1": "Full", "char2": 10, "sub2": 20, "align2": "Partial", "sentiment": "Positive", "notes": "Beneficial AI (equity) + Value-Aligned AI (values alignment, partial)", "status": "Confirmed", "vote_count": 1}, {"id": 27, "activity": "II", "city": "Singapore", "role": "Researcher", "text": "I study AI in oncology. The models I test are impressive, but they are black boxes. The moment we cannot explain a recommendation to a patient, we lose their trust.", "char1": 9, "sub1": 39, "align1": "Full", "char2": 9, "sub2": 41, "align2": "Full", "sentiment": "Positive", "notes": "Explainable AI \u2014 dual principle, strong alignment", "status": "Confirmed", "vote_count": 1}, {"id": 28, "activity": "II", "city": "Singapore", "role": "Administrator", "text": "The system must work reliably 24 hours a day, 7 days a week. A hospital cannot have AI that is down during a critical moment.", "char1": 2, "sub1": 29, "align1": "Full", "char2": 5, "sub2": 11, "align2": "Partial", "sentiment": "Positive", "notes": "Reliable AI (consistency) + Future-Proof AI (responsiveness, partial)", "status": "Confirmed", "vote_count": 1}, {"id": 29, "activity": "II", "city": "Singapore", "role": "Doctor", "text": "Cultural sensitivity is crucial here. Singapore has Chinese, Malay, Indian, and Western patients. AI must not assume one cultural framework for all.", "char1": 8, "sub1": 17, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Responsible AI \u2014 cultural adaptation; strong local context", "status": "Confirmed", "vote_count": 1}, {"id": 30, "activity": "II", "city": "Singapore", "role": "Patient", "text": "I want to be involved in decisions about my own care. AI can help, but I should always have the final say about what happens to my body.", "char1": 6, "sub1": 25, "align1": "Full", "char2": 7, "sub2": 31, "align2": "Partial", "sentiment": "Positive", "notes": "HITL (human agency) + Privacy (patient rights, partial)", "status": "Confirmed", "vote_count": 1}, {"id": 1000, "activity": "III", "city": "Nairobi", "role": "Doctor", "text": "The doctor must always be able to override the AI. No machine should have the final word on a patient's life.", "char1": 6, "sub1": null, "align1": "Partial", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Human-in-the-loop. Keywords: ['override']", "status": "Pending review", "vote_count": 1}, {"id": 1001, "activity": "III", "city": "Singapore", "role": "Patient", "text": "Human oversight means I can trust the tool \u2014 without it, I would never use it in my practice.", "char1": 6, "sub1": null, "align1": "Partial", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Human-in-the-loop. Keywords: ['human']", "status": "Pending review", "vote_count": 1}, {"id": 1002, "activity": "III", "city": "Stockholm", "role": "Policy Maker", "text": "AI should assist, not decide. The loop must always include a qualified human professional.", "char1": 6, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Human-in-the-loop. Keywords: ['human', 'loop']", "status": "Pending review", "vote_count": 1}, {"id": 1003, "activity": "III", "city": "Nairobi", "role": "Health NGO", "text": "I selected this because patients deserve to know a human reviewed their case, not just an algorithm.", "char1": 6, "sub1": null, "align1": "Partial", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Human-in-the-loop. Keywords: ['human']", "status": "Pending review", "vote_count": 1}, {"id": 1004, "activity": "III", "city": "Singapore", "role": "Doctor", "text": "In emergency medicine, there is no time for AI delays. Humans must stay in control at all times.", "char1": 6, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Human-in-the-loop. Keywords: ['human', 'control']", "status": "Pending review", "vote_count": 1}, {"id": 1005, "activity": "III", "city": "Stockholm", "role": "Patient", "text": "The nurse-patient relationship is sacred. AI must support it, never replace it.", "char1": 6, "sub1": null, "align1": "Partial", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Human-in-the-loop. Keywords: []", "status": "Pending review", "vote_count": 1}, {"id": 1006, "activity": "III", "city": "Nairobi", "role": "Policy Maker", "text": "My patients trust me, not a machine. I need to be the decision-maker.", "char1": 6, "sub1": null, "align1": "Partial", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Human-in-the-loop. Keywords: ['decision']", "status": "Pending review", "vote_count": 1}, {"id": 1007, "activity": "III", "city": "Singapore", "role": "Health NGO", "text": "Human agency in healthcare is a fundamental right, not just a nice feature.", "char1": 6, "sub1": null, "align1": "Partial", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Human-in-the-loop. Keywords: ['human']", "status": "Pending review", "vote_count": 1}, {"id": 1008, "activity": "III", "city": "Stockholm", "role": "Doctor", "text": "Without a human in the loop, errors can cascade and nobody is accountable.", "char1": 6, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Human-in-the-loop. Keywords: ['human', 'loop']", "status": "Pending review", "vote_count": 1}, {"id": 1009, "activity": "III", "city": "Nairobi", "role": "Nurse", "text": "Patient data is deeply personal. The idea of it being used without my knowledge frightens me.", "char1": 7, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Privacy-Enabled AI. Keywords: ['data', 'patient']", "status": "Pending review", "vote_count": 1}, {"id": 1010, "activity": "III", "city": "Singapore", "role": "AI Developer", "text": "I chose privacy because my patients share things with me they tell nobody else. That must be protected.", "char1": 7, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Privacy-Enabled AI. Keywords: ['privac', 'patient']", "status": "Pending review", "vote_count": 1}, {"id": 1011, "activity": "III", "city": "Stockholm", "role": "Administrator", "text": "As a researcher, I handle health data every day. Consent and transparency are non-negotiable.", "char1": 7, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Privacy-Enabled AI. Keywords: ['data', 'consent']", "status": "Pending review", "vote_count": 1}, {"id": 1012, "activity": "III", "city": "Nairobi", "role": "Researcher", "text": "Who owns my health data? I should. Not the hospital, not the AI company.", "char1": 7, "sub1": null, "align1": "Partial", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Privacy-Enabled AI. Keywords: ['data']", "status": "Pending review", "vote_count": 1}, {"id": 1013, "activity": "III", "city": "Singapore", "role": "Nurse", "text": "Privacy is the foundation. Without it, no patient will trust any AI system.", "char1": 7, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Privacy-Enabled AI. Keywords: ['privac', 'patient']", "status": "Pending review", "vote_count": 1}, {"id": 1014, "activity": "III", "city": "Stockholm", "role": "AI Developer", "text": "I have seen data breaches in healthcare. The consequences are devastating for patients.", "char1": 7, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Privacy-Enabled AI. Keywords: ['data', 'patient']", "status": "Pending review", "vote_count": 1}, {"id": 1015, "activity": "III", "city": "Nairobi", "role": "Researcher", "text": "If I cannot explain why the AI made a decision, I cannot defend it to a patient or a court.", "char1": 9, "sub1": null, "align1": "Partial", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Explainable AI. Keywords: ['explain']", "status": "Pending review", "vote_count": 1}, {"id": 1016, "activity": "III", "city": "Singapore", "role": "Nurse", "text": "Explainability is how we build trust. Black boxes have no place in medicine.", "char1": 9, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Explainable AI. Keywords: ['explain', 'black box']", "status": "Pending review", "vote_count": 1}, {"id": 1017, "activity": "III", "city": "Stockholm", "role": "AI Developer", "text": "My patients ask me why. I need to be able to give them an answer, even if AI generated the recommendation.", "char1": 9, "sub1": null, "align1": "Partial", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Explainable AI. Keywords: []", "status": "Pending review", "vote_count": 1}, {"id": 1018, "activity": "III", "city": "Nairobi", "role": "Administrator", "text": "I chose this because transparent reasoning is the only way to catch bias in AI systems.", "char1": 9, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Explainable AI. Keywords: ['transparent', 'reasoning']", "status": "Pending review", "vote_count": 1}, {"id": 1019, "activity": "III", "city": "Singapore", "role": "Researcher", "text": "In oncology, we must be able to explain every recommendation to the patient and their family.", "char1": 9, "sub1": null, "align1": "Partial", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Explainable AI. Keywords: ['explain']", "status": "Pending review", "vote_count": 1}, {"id": 1020, "activity": "III", "city": "Stockholm", "role": "Policy Maker", "text": "Reliable AI is accurate AI. In healthcare, inaccuracy costs lives.", "char1": 2, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Reliable AI. Keywords: ['reliab', 'accurat']", "status": "Pending review", "vote_count": 1}, {"id": 1021, "activity": "III", "city": "Nairobi", "role": "Health NGO", "text": "I need to be able to trust the output every single time, not just on average.", "char1": 2, "sub1": null, "align1": "Partial", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Reliable AI. Keywords: ['trust the output']", "status": "Pending review", "vote_count": 1}, {"id": 1022, "activity": "III", "city": "Singapore", "role": "Doctor", "text": "Consistency across different patient populations is what makes AI genuinely useful.", "char1": 2, "sub1": null, "align1": "Partial", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Reliable AI. Keywords: []", "status": "Pending review", "vote_count": 1}, {"id": 1023, "activity": "III", "city": "Stockholm", "role": "Patient", "text": "If the AI works differently for patients from different backgrounds, it is not reliable.", "char1": 2, "sub1": null, "align1": "Partial", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Reliable AI. Keywords: ['reliab']", "status": "Pending review", "vote_count": 1}, {"id": 1024, "activity": "III", "city": "Nairobi", "role": "Policy Maker", "text": "An AI that works 95% of the time is not reliable enough for clinical use.", "char1": 2, "sub1": null, "align1": "Partial", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Reliable AI. Keywords: ['reliab']", "status": "Pending review", "vote_count": 1}, {"id": 1025, "activity": "III", "city": "Singapore", "role": "Nurse", "text": "The whole point of healthcare AI is to improve outcomes for patients. That must come first.", "char1": 1, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Beneficial AI. Keywords: ['improve', 'outcome']", "status": "Pending review", "vote_count": 1}, {"id": 1026, "activity": "III", "city": "Stockholm", "role": "AI Developer", "text": "AI should reduce health inequalities, not deepen them. Equitable benefit is the standard.", "char1": 1, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Beneficial AI. Keywords: ['benefit', 'equit']", "status": "Pending review", "vote_count": 1}, {"id": 1027, "activity": "III", "city": "Nairobi", "role": "Administrator", "text": "Beneficial means it actually helps \u2014 not just that it is impressive to demonstrate.", "char1": 1, "sub1": null, "align1": "Partial", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Beneficial AI. Keywords: ['help']", "status": "Pending review", "vote_count": 1}, {"id": 1028, "activity": "III", "city": "Singapore", "role": "Researcher", "text": "I work in rural health. AI must benefit underserved communities, not just urban hospitals.", "char1": 1, "sub1": null, "align1": "Partial", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Beneficial AI. Keywords: ['benefit']", "status": "Pending review", "vote_count": 1}, {"id": 1029, "activity": "III", "city": "Stockholm", "role": "Administrator", "text": "AI in healthcare must share the values of the medical profession \u2014 above all, do no harm.", "char1": 10, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Value-Aligned AI. Keywords: ['value', 'harm']", "status": "Pending review", "vote_count": 1}, {"id": 1030, "activity": "III", "city": "Nairobi", "role": "Researcher", "text": "Value alignment means the system is designed with patients at the centre, not efficiency metrics.", "char1": 10, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Value-Aligned AI. Keywords: ['value', 'align']", "status": "Pending review", "vote_count": 1}, {"id": 1031, "activity": "III", "city": "Singapore", "role": "Nurse", "text": "I trust AI when its goals are clearly aligned with patient welfare, not institutional profit.", "char1": 10, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Value-Aligned AI. Keywords: ['align', 'patient']", "status": "Pending review", "vote_count": 1}, {"id": 1032, "activity": "III", "city": "Stockholm", "role": "Doctor", "text": "When something goes wrong, someone must answer for it. AI makes accountability murky.", "char1": 4, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Accountable AI. Keywords: ['accountab', 'answer']", "status": "Pending review", "vote_count": 1}, {"id": 1033, "activity": "III", "city": "Nairobi", "role": "Patient", "text": "I need a clear audit trail. Every decision the AI contributes to must be traceable.", "char1": 4, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Accountable AI. Keywords: ['audit', 'trace']", "status": "Pending review", "vote_count": 1}, {"id": 1034, "activity": "III", "city": "Singapore", "role": "Policy Maker", "text": "Accountability structures must be in place before any AI is deployed in a clinical setting.", "char1": 4, "sub1": null, "align1": "Partial", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Accountable AI. Keywords: ['accountab']", "status": "Pending review", "vote_count": 1}, {"id": 1035, "activity": "III", "city": "Stockholm", "role": "AI Developer", "text": "Healthcare AI must respect human rights and comply with the laws of the country it operates in.", "char1": 8, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Responsible AI. Keywords: ['right', 'law']", "status": "Pending review", "vote_count": 1}, {"id": 1036, "activity": "III", "city": "Nairobi", "role": "Administrator", "text": "Responsible AI considers the social and environmental impact, not just the clinical outcome.", "char1": 8, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Responsible AI. Keywords: ['responsib', 'social']", "status": "Pending review", "vote_count": 1}, {"id": 1037, "activity": "III", "city": "Singapore", "role": "Administrator", "text": "Security is critical. Healthcare data is a target. AI systems must be hardened against attack.", "char1": 3, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Secure AI systems. Keywords: ['secur', 'attack']", "status": "Pending review", "vote_count": 1}, {"id": 1038, "activity": "III", "city": "Stockholm", "role": "Researcher", "text": "I chose security because a breach of medical AI could affect thousands of patients at once.", "char1": 3, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Secure AI systems. Keywords: ['secur', 'breach']", "status": "Pending review", "vote_count": 1}, {"id": 1039, "activity": "III", "city": "Nairobi", "role": "Researcher", "text": "The AI we deploy today must still be useful in five years. It must be built to last and evolve.", "char1": 5, "sub1": null, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Chose: Future-Proof AI. Keywords: ['evolve', 'last']", "status": "Pending review", "vote_count": 1}, {"id": 3000, "activity": "IV", "city": "Stockholm", "role": "Table 1", "text": "[Group vote] Human-in-the-loop \u2014 Human has authority to make decisions on AI systems (4 vote(s), table 1)", "char1": 6, "sub1": 24, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 4 vote(s). Table 1.", "status": "Pending review", "vote_count": 4}, {"id": 3001, "activity": "IV", "city": "Stockholm", "role": "Table 1", "text": "[Group vote] Human-in-the-loop \u2014 AI systems designed to allow human agency (3 vote(s), table 1)", "char1": 6, "sub1": 25, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 3 vote(s). Table 1.", "status": "Pending review", "vote_count": 3}, {"id": 3002, "activity": "IV", "city": "Stockholm", "role": "Table 1", "text": "[Group vote] Human-in-the-loop \u2014 Human has more autonomy than the machine (2 vote(s), table 1)", "char1": 6, "sub1": 23, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 2 vote(s). Table 1.", "status": "Pending review", "vote_count": 2}, {"id": 3003, "activity": "IV", "city": "Stockholm", "role": "Table 1", "text": "[Group vote] Privacy-Enabled AI \u2014 Health data and rights belongs to the patient (5 vote(s), table 1)", "char1": 7, "sub1": 31, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 5 vote(s). Table 1.", "status": "Pending review", "vote_count": 5}, {"id": 3004, "activity": "IV", "city": "Stockholm", "role": "Table 1", "text": "[Group vote] Privacy-Enabled AI \u2014 Transparent consent guidelines on how health data is used (3 vote(s), table 1)", "char1": 7, "sub1": 33, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 3 vote(s). Table 1.", "status": "Pending review", "vote_count": 3}, {"id": 3005, "activity": "IV", "city": "Stockholm", "role": "Table 2", "text": "[Group vote] Explainable AI \u2014 Explicitly justify decisions/outcomes with limitations (4 vote(s), table 2)", "char1": 9, "sub1": 39, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 4 vote(s). Table 2.", "status": "Pending review", "vote_count": 4}, {"id": 3006, "activity": "IV", "city": "Stockholm", "role": "Table 2", "text": "[Group vote] Explainable AI \u2014 Operations understood and interpreted easily by intended users (5 vote(s), table 2)", "char1": 9, "sub1": 40, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 5 vote(s). Table 2.", "status": "Pending review", "vote_count": 5}, {"id": 3007, "activity": "IV", "city": "Stockholm", "role": "Table 2", "text": "[Group vote] Reliable AI \u2014 Results have low error rate, openly declared (3 vote(s), table 2)", "char1": 2, "sub1": 27, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 3 vote(s). Table 2.", "status": "Pending review", "vote_count": 3}, {"id": 3008, "activity": "IV", "city": "Stockholm", "role": "Table 2", "text": "[Group vote] Reliable AI \u2014 AI reproduces results across cultural contexts and demographics (2 vote(s), table 2)", "char1": 2, "sub1": 28, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 2 vote(s). Table 2.", "status": "Pending review", "vote_count": 2}, {"id": 3009, "activity": "IV", "city": "Nairobi", "role": "Table 3", "text": "[Group vote] Human-in-the-loop \u2014 Human has authority to make decisions on AI systems (5 vote(s), table 3)", "char1": 6, "sub1": 24, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 5 vote(s). Table 3.", "status": "Pending review", "vote_count": 5}, {"id": 3010, "activity": "IV", "city": "Nairobi", "role": "Table 3", "text": "[Group vote] Human-in-the-loop \u2014 AI systems designed to allow human agency (4 vote(s), table 3)", "char1": 6, "sub1": 25, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 4 vote(s). Table 3.", "status": "Pending review", "vote_count": 4}, {"id": 3011, "activity": "IV", "city": "Nairobi", "role": "Table 3", "text": "[Group vote] Beneficial AI \u2014 AI designed to do good and for wellbeing equitably (6 vote(s), table 3)", "char1": 1, "sub1": 1, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 6 vote(s). Table 3.", "status": "Pending review", "vote_count": 6}, {"id": 3012, "activity": "IV", "city": "Nairobi", "role": "Table 3", "text": "[Group vote] Beneficial AI \u2014 AI prioritizes welfare and benefits of the public (3 vote(s), table 3)", "char1": 1, "sub1": 2, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 3 vote(s). Table 3.", "status": "Pending review", "vote_count": 3}, {"id": 3013, "activity": "IV", "city": "Nairobi", "role": "Table 4", "text": "[Group vote] Responsible AI \u2014 Takes local culture or language into consideration (5 vote(s), table 4)", "char1": 8, "sub1": 17, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 5 vote(s). Table 4.", "status": "Pending review", "vote_count": 5}, {"id": 3014, "activity": "IV", "city": "Nairobi", "role": "Table 4", "text": "[Group vote] Responsible AI \u2014 Respects and upholds universal human rights (4 vote(s), table 4)", "char1": 8, "sub1": 13, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 4 vote(s). Table 4.", "status": "Pending review", "vote_count": 4}, {"id": 3015, "activity": "IV", "city": "Nairobi", "role": "Table 4", "text": "[Group vote] Explainable AI \u2014 Explicitly justify decisions/outcomes with limitations (3 vote(s), table 4)", "char1": 9, "sub1": 39, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 3 vote(s). Table 4.", "status": "Pending review", "vote_count": 3}, {"id": 3016, "activity": "IV", "city": "Singapore", "role": "Table 5", "text": "[Group vote] Human-in-the-loop \u2014 Human has authority to make decisions on AI systems (3 vote(s), table 5)", "char1": 6, "sub1": 24, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 3 vote(s). Table 5.", "status": "Pending review", "vote_count": 3}, {"id": 3017, "activity": "IV", "city": "Singapore", "role": "Table 5", "text": "[Group vote] Human-in-the-loop \u2014 Other (2 vote(s), table 5)", "char1": 6, "sub1": null, "align1": "Emergent", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 2 vote(s). Table 5.", "status": "Pending review", "vote_count": 2}, {"id": 3018, "activity": "IV", "city": "Singapore", "role": "Table 5", "text": "[Group vote] Accountable AI \u2014 Auditable AI processes and decisions (4 vote(s), table 5)", "char1": 4, "sub1": 36, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 4 vote(s). Table 5.", "status": "Pending review", "vote_count": 4}, {"id": 3019, "activity": "IV", "city": "Singapore", "role": "Table 5", "text": "[Group vote] Accountable AI \u2014 Clear, accessible and usable policies for ethical AI governance (3 vote(s), table 5)", "char1": 4, "sub1": 37, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 3 vote(s). Table 5.", "status": "Pending review", "vote_count": 3}, {"id": 3020, "activity": "IV", "city": "Singapore", "role": "Table 6", "text": "[Group vote] Reliable AI \u2014 Results have low error rate, openly declared (4 vote(s), table 6)", "char1": 2, "sub1": 27, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 4 vote(s). Table 6.", "status": "Pending review", "vote_count": 4}, {"id": 3021, "activity": "IV", "city": "Singapore", "role": "Table 6", "text": "[Group vote] Reliable AI \u2014 AI results consistent across time for same conditions (3 vote(s), table 6)", "char1": 2, "sub1": 29, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 3 vote(s). Table 6.", "status": "Pending review", "vote_count": 3}, {"id": 3022, "activity": "IV", "city": "Singapore", "role": "Table 6", "text": "[Group vote] Privacy-Enabled AI \u2014 Health data and rights belongs to the patient (5 vote(s), table 6)", "char1": 7, "sub1": 31, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 5 vote(s). Table 6.", "status": "Pending review", "vote_count": 5}, {"id": 3023, "activity": "IV", "city": "Singapore", "role": "Table 6", "text": "[Group vote] Privacy-Enabled AI \u2014 Transparent consent guidelines on how health data is used (3 vote(s), table 6)", "char1": 7, "sub1": 33, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": null, "notes": "Group vote: 3 vote(s). Table 6.", "status": "Pending review", "vote_count": 3}, {"id": 4000, "activity": "VI", "city": "Stockholm", "role": "Table 1", "text": "[Archetype: Compassionate Guardian] Key characteristics: Human-centred; transparent; privacy-respecting; empathetic design. An AI that keeps humans firmly in control while being honest about its limitations and protective of patient data. Named Guardian because it watches over patients without replacing the care relationship.", "char1": 6, "sub1": 25, "align1": "Full", "char2": 7, "sub2": 31, "align2": "Full", "sentiment": "Positive", "notes": "HITL + Privacy. Empathetic design = emergent.", "status": "Pending review", "vote_count": 1}, {"id": 4001, "activity": "VI", "city": "Stockholm", "role": "Table 2", "text": "[Archetype: The Honest Consultant] Key characteristics: Explainable; reliable; accountable; admits uncertainty. AI that behaves like a good medical consultant \u2014 gives you its best assessment, explains its reasoning, and clearly states what it does not know. Never pretends to certainty it does not have.", "char1": 9, "sub1": 39, "align1": "Full", "char2": 2, "sub2": 27, "align2": "Full", "sentiment": "Positive", "notes": "Explainable + Reliable \u2014 strong dual alignment.", "status": "Pending review", "vote_count": 1}, {"id": 4002, "activity": "VI", "city": "Nairobi", "role": "Table 3", "text": "[Archetype: Ubuntu Health AI] Key characteristics: Communal; culturally aware; equitable; collectively governed. AI designed with the Ubuntu principle \u2014 I am because we are. Health decisions affect families and communities, not just individuals. This AI is built for collective wellbeing, not individual optimisation.", "char1": 1, "sub1": 1, "align1": "Full", "char2": 8, "sub2": 17, "align2": "Emergent", "sentiment": "Positive", "notes": "Beneficial AI + Responsible AI (culture). Ubuntu = emergent collective ethics.", "status": "Pending review", "vote_count": 1}, {"id": 4003, "activity": "VI", "city": "Nairobi", "role": "Table 4", "text": "[Archetype: The Local Expert] Key characteristics: Culturally competent; locally trained; community-trusted. AI trained on local health data, adapted to local languages and cultural practices. Trusted by the community because it understands them. Not a foreign solution imposed on local problems.", "char1": 8, "sub1": 17, "align1": "Full", "char2": null, "sub2": null, "align2": null, "sentiment": "Positive", "notes": "Responsible AI (culture). Cultural competency = strong emergent theme.", "status": "Pending review", "vote_count": 1}, {"id": 4004, "activity": "VI", "city": "Singapore", "role": "Table 5", "text": "[Archetype: Precision Guardian] Key characteristics: Precise; secure; multi-cultural; regulated; auditable. AI built for Singapore's multi-ethnic, highly regulated healthcare environment. Precision in outputs, security in data handling, and full compliance with national AI governance frameworks.", "char1": 3, "sub1": 5, "align1": "Full", "char2": 4, "sub2": 36, "align2": "Full", "sentiment": "Positive", "notes": "Secure + Accountable \u2014 strong regulatory framing.", "status": "Pending review", "vote_count": 1}, {"id": 4005, "activity": "VI", "city": "Singapore", "role": "Table 6", "text": "[Archetype: Patient Champion] Key characteristics: Patient rights; data sovereignty; human agency; transparent consent. AI that treats patients as active participants, not passive recipients. Patients can see what the AI knows about them, question its recommendations, and withdraw consent at any time.", "char1": 6, "sub1": 25, "align1": "Full", "char2": 7, "sub2": 31, "align2": "Full", "sentiment": "Positive", "notes": "HITL + Privacy \u2014 patient empowerment framing.", "status": "Pending review", "vote_count": 1}];
+let filteredIds = data.map(r=>r.id);
+let editingId = null;
+let activeActivity = null;
+
+const charName = c => c ? (CHARS[c]||c) : '';
+const subShort = s => s ? (SUBCHS[s] ? SUBCHS[s].d.slice(0,38)+'…' : s) : '';
+
+function stats(){
+  return {
+    total:data.length,
+    confirmed:data.filter(r=>r.status==='Confirmed').length,
+    flagged:data.filter(r=>r.status==='Flagged').length,
+    emergent:data.filter(r=>r.align1==='Emergent'||r.align2==='Emergent').length,
+  };
+}
+function charFreq(){
+  const f={};
+  data.forEach(r=>{
+    const w=(r.activity==='IV'&&r.vote_count)?r.vote_count:1;
+    if(r.char1) f[r.char1]=(f[r.char1]||0)+w;
+    if(r.char2) f[r.char2]=(f[r.char2]||0)+w;
+  });
+  return f;
+}
+function sentFreq(){
+  const f={Positive:0,Negative:0,Ambiguous:0,Neutral:0};
+  data.forEach(r=>{if(r.sentiment&&f[r.sentiment]!==undefined)f[r.sentiment]++;});
+  return f;
+}
+function alignFreq(){
+  const f={Full:0,Partial:0,'Not aligned':0,Emergent:0};
+  data.filter(r=>r.activity==='II').forEach(r=>{
+    if(r.align1) f[r.align1]=(f[r.align1]||0)+1;
+    if(r.align2) f[r.align2]=(f[r.align2]||0)+1;
+  });
+  return f;
+}
+
+function renderDashboard(){
+  const st=stats();
+  document.getElementById('hs-total').textContent=st.total;
+  document.getElementById('hs-confirmed').textContent=st.confirmed;
+  document.getElementById('hs-flagged').textContent=st.flagged;
+  document.getElementById('hs-emergent').textContent=st.emergent;
+
+  const pct=st.total?Math.round(st.confirmed/st.total*100):0;
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-label').textContent=`${st.confirmed} / ${st.total} confirmed (${pct}%)`;
+
+  const freq=charFreq();
+  const maxF=Math.max(...Object.values(freq),1);
+  const sorted=Object.entries(CHARS).map(([k,v])=>({id:+k,name:v,n:freq[k]||0})).sort((a,b)=>b.n-a.n);
+  document.getElementById('char-bars').innerHTML=sorted.map(c=>`
+    <div class="cbar-row">
+      <div class="cbar-label ${c.id===6?'top':''}">${c.name}</div>
+      <div class="cbar-track"><div class="cbar-fill" style="width:${(c.n/maxF*100).toFixed(1)}%;background:${c.id===6?'var(--accent)':'var(--blue)'}"></div></div>
+      <div class="cbar-n ${c.id===6?'top':''}">${c.n}</div>
+    </div>`).join('');
+
+  const sf=sentFreq();
+  const total=Object.values(sf).reduce((a,b)=>a+b,0)||1;
+  const sColors={Positive:'#22c55e',Negative:'#ef4444',Ambiguous:'#f59e0b',Neutral:'#94a3b8'};
+  let ang=-Math.PI/2,r=30,cx=38,cy=38,paths='';
+  Object.entries(sf).forEach(([k,v])=>{
+    if(!v)return;
+    const a=(v/total)*2*Math.PI;
+    const x1=cx+r*Math.cos(ang),y1=cy+r*Math.sin(ang);
+    const x2=cx+r*Math.cos(ang+a),y2=cy+r*Math.sin(ang+a);
+    paths+=`<path d="M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${a>Math.PI?1:0},1 ${x2},${y2} Z" fill="${sColors[k]}" opacity="0.85"/>`;
+    ang+=a;
+  });
+  paths+=`<circle cx="${cx}" cy="${cy}" r="17" fill="var(--surface2)"/>`;
+  document.getElementById('donut-svg').innerHTML=paths;
+  document.getElementById('donut-legend').innerHTML=Object.entries(sf).map(([k,v])=>
+    `<div class="dl-item"><div class="dl-dot" style="background:${sColors[k]}"></div><span>${k}</span><span class="dl-pct" style="color:${sColors[k]}">${total?Math.round(v/total*100):0}%</span></div>`
+  ).join('');
+
+  const af=alignFreq();
+  const at=Object.values(af).reduce((a,b)=>a+b,0)||1;
+  const ac={Full:'var(--teal)',Partial:'var(--gold)','Not aligned':'var(--accent)',Emergent:'var(--purple)'};
+  document.getElementById('align-stacked').innerHTML=Object.entries(af).map(([k,v])=>
+    v?`<div class="align-seg" style="width:${(v/at*100).toFixed(1)}%;background:${ac[k]};color:rgba(255,255,255,0.9)">${Math.round(v/at*100)}%</div>`:''
+  ).join('');
+  document.getElementById('align-legend').innerHTML=Object.entries(af).map(([k,v])=>
+    `<div class="al-item"><div class="al-dot" style="background:${ac[k]}"></div>${k} (${v})</div>`
+  ).join('');
+
+  const actC={I:0,II:0,III:0,IV:0,VI:0};
+  data.forEach(r=>{if(actC[r.activity]!==undefined)actC[r.activity]++;});
+  const actN={I:'Color Metaphors',II:'AI Definitions',III:'Top 3 Chars',IV:'Subchar Votes',VI:'Archetypes'};
+  document.getElementById('act-pills').innerHTML=Object.entries(actC).map(([k,v])=>`
+    <div class="act-pill ${activeActivity===k?'active':''}" onclick="filterByActivity('${k}')">
+      <div class="act-pill-left"><div class="act-badge-sm">${k}</div><div class="act-pill-name">${actN[k]}</div></div>
+      <div class="act-pill-n">${v}</div>
+    </div>`).join('');
+
+  const emergent=data.filter(r=>r.align1==='Emergent'||r.align2==='Emergent');
+  document.getElementById('emergent-list').innerHTML=emergent.length===0
+    ?'<div style="color:var(--text2);font-size:11px;">No emergent codes yet.</div>'
+    :emergent.map(r=>`
+      <div class="emergent-card" onclick="goToRow(${r.id})">
+        <div style="font-size:9px;color:var(--text2);margin-bottom:4px;">${r.activity} · ${r.city} · ${r.role}</div>
+        <div style="font-family:'Lora',serif;font-size:11px;color:var(--text);line-height:1.4;">"${(r.text||'').slice(0,90)}…"</div>
+        <div style="margin-top:4px;font-size:9px;color:#a78bfa;">${r.notes||''}</div>
+      </div>`).join('');
+
+  const recent=[...data].filter(r=>r.status==='Confirmed'||r.status==='Revised').slice(-5).reverse();
+  document.getElementById('recent-list').innerHTML=recent.length===0
+    ?'<div style="color:var(--text2);font-size:11px;">No confirmed codes yet — start reviewing in the Coding Table.</div>'
+    :recent.map(r=>`
+      <div style="border:1px solid var(--border);border-radius:6px;padding:9px 12px;margin-bottom:7px;cursor:pointer;background:var(--surface2)" onclick="goToRow(${r.id})">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px;">
+          <span style="font-size:10px;color:var(--text2)">${r.activity} · ${r.city}</span>
+          <span class="status-pill sp-${(r.status||'pending').toLowerCase().replace(' ','-')}">${r.status}</span>
+          ${r.sentiment?`<span class="sent-pill sent-${r.sentiment}">${r.sentiment}</span>`:''}
+        </div>
+        <div style="font-family:'Lora',serif;font-size:11px;color:var(--text);line-height:1.4;">"${(r.text||'').slice(0,100)}…"</div>
+      </div>`).join('');
+}
+
+function renderTable(){
+  const tbody=document.getElementById('table-body');
+  const rows=data.filter(r=>filteredIds.includes(r.id));
+  document.getElementById('filter-results').textContent=`${rows.length} rows`;
+  tbody.innerHTML='';
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    if(editingId===r.id)tr.classList.add('editing');
+    tr.id=`row-${r.id}`;
+    const cityPill=r.city.replace(' ','');
+    const a1cls=(r.align1||'').replace(' ','-');
+    const a2cls=(r.align2||'').replace(' ','-');
+    const statCls={'Pending review':'sp-pending','Confirmed':'sp-confirmed','Revised':'sp-revised','Flagged':'sp-flagged'}[r.status]||'sp-pending';
+    tr.innerHTML=`
+      <td><div class="cell" style="color:var(--text2);font-size:10px">${r.id}</div></td>
+      <td><div class="cell"><span class="pill" style="background:var(--surface2);color:var(--gold);border:1px solid var(--border)">${r.activity}</span></div></td>
+      <td><div class="cell"><span class="pill pill-${cityPill}">${r.city}</span></div></td>
+      <td><div class="cell" style="font-size:10px;color:var(--text2)">${(r.role||'').slice(0,18)}</div></td>
+      <td><div class="cell">
+        <div class="response-text trunc" id="txt-${r.id}">${r.text||''}</div>
+        ${(r.text||'').length>120?`<span class="expand-btn" onclick="toggleExpand(${r.id})">show more</span>`:''}
+      </div></td>
+      <td><div class="cell">${r.char1?`<span class="char-tag">${charName(r.char1)}</span>${r.sub1?`<div style="font-size:9px;color:var(--text3);margin-top:2px">${subShort(r.sub1)}</div>`:''}`:'—'}</div></td>
+      <td><div class="cell">${r.align1?`<span class="align-pill ap-${a1cls}">${r.align1}</span>`:''}</div></td>
+      <td><div class="cell">${r.char2?`<span class="char-tag">${charName(r.char2)}</span>${r.sub2?`<div style="font-size:9px;color:var(--text3);margin-top:2px">${subShort(r.sub2)}</div>`:''}`:'—'}</div></td>
+      <td><div class="cell">${r.align2?`<span class="align-pill ap-${a2cls}">${r.align2}</span>`:''}</div></td>
+      <td><div class="cell">${r.sentiment?`<span class="sent-pill sent-${r.sentiment}">${r.sentiment}</span>`:''}</div></td>
+      <td><div class="cell"><span class="status-pill ${statCls}">${r.status||''}</span></div></td>
+      <td><div class="cell" style="cursor:pointer;color:var(--blue);font-size:14px" onclick="startEdit(${r.id})">${editingId===r.id?'▾':'✎'}</div></td>`;
+    tbody.appendChild(tr);
+    if(editingId===r.id){
+      const et=document.createElement('tr');
+      et.className='editing';
+      et.innerHTML=`<td colspan="12"><div class="edit-panel">${buildPanel(r)}</div></td>`;
+      tbody.appendChild(et);
+    }
+  });
+}
+
+function buildPanel(r){
+  const co=Object.entries(CHARS).map(([k,v])=>`<option value="${k}" ${r.char1==k?'selected':''}>${k} – ${v}</option>`).join('');
+  const co2=`<option value="">—</option>`+Object.entries(CHARS).map(([k,v])=>`<option value="${k}" ${r.char2==k?'selected':''}>${k} – ${v}</option>`).join('');
+  const sf=(cid,sel)=>`<option value="">—</option>`+Object.entries(SUBCHS).filter(([k,v])=>!cid||v.c==cid).map(([k,v])=>`<option value="${k}" ${sel==k?'selected':''}>${k} – ${v.d.slice(0,44)}…</option>`).join('');
+  const ao=sel=>['Full','Partial','Not aligned','Emergent'].map(v=>`<option ${sel===v?'selected':''}>${v}</option>`).join('');
+  const so=sel=>'Positive,Negative,Neutral,Ambiguous'.split(',').map(v=>`<option ${sel===v?'selected':''}>${v}</option>`).join('');
+  const sto=sel=>['Pending review','Confirmed','Revised','Flagged'].map(v=>`<option ${sel===v?'selected':''}>${v}</option>`).join('');
+  return `
+    <div class="edit-header">Editing #${r.id} · ${r.activity} · ${r.city} · ${r.role||''}</div>
+    <div class="edit-quote">"${r.text||''}"</div>
+    <div class="edit-grid">
+      <div class="edit-group"><label class="edit-label">Characteristic 1</label>
+        <select class="edit-select" id="e-char1" onchange="refreshSub(1)"><option value="">—</option>${co}</select></div>
+      <div class="edit-group"><label class="edit-label">Subcharacteristic 1</label>
+        <select class="edit-select" id="e-sub1">${sf(r.char1,r.sub1)}</select></div>
+      <div class="edit-group"><label class="edit-label">Alignment 1</label>
+        <select class="edit-select" id="e-align1"><option value="">—</option>${ao(r.align1)}</select></div>
+      <div class="edit-group"><label class="edit-label">Characteristic 2</label>
+        <select class="edit-select" id="e-char2" onchange="refreshSub(2)">${co2}</select></div>
+      <div class="edit-group"><label class="edit-label">Subcharacteristic 2</label>
+        <select class="edit-select" id="e-sub2">${sf(r.char2,r.sub2)}</select></div>
+      <div class="edit-group"><label class="edit-label">Alignment 2</label>
+        <select class="edit-select" id="e-align2"><option value="">—</option>${ao(r.align2)}</select></div>
+      <div class="edit-group"><label class="edit-label">Sentiment</label>
+        <select class="edit-select" id="e-sentiment"><option value="">—</option>${so(r.sentiment)}</select></div>
+      <div class="edit-group"><label class="edit-label">Status</label>
+        <select class="edit-select" id="e-status">${sto(r.status)}</select></div>
+      <div class="edit-group"><label class="edit-label">Notes</label>
+        <textarea class="edit-textarea" id="e-notes">${r.notes||''}</textarea></div>
+    </div>
+    <div class="edit-actions">
+      <button class="btn btn-primary" onclick="saveEdit(${r.id})">💾 Save</button>
+      <button class="btn btn-ghost" onclick="quickStatus(${r.id},'Confirmed')" style="color:var(--green);border-color:var(--green)">✓ Confirm</button>
+      <button class="btn btn-ghost" onclick="quickStatus(${r.id},'Flagged')" style="color:var(--accent);border-color:var(--accent)">⚑ Flag</button>
+      <button class="btn btn-ghost" onclick="cancelEdit()">Cancel</button>
+      <span class="save-ok" id="save-ok">✓ Saved</span>
+    </div>
+    <p style="font-size:9px;color:var(--text3);margin-top:8px;">⚠ Demo mode — changes are saved in memory only and will reset on page reload.</p>`;
+}
+
+function refreshSub(n){
+  const cid=+document.getElementById(`e-char${n}`).value;
+  const sub=document.getElementById(`e-sub${n}`);
+  sub.innerHTML=`<option value="">—</option>`+Object.entries(SUBCHS).filter(([k,v])=>!cid||v.c===cid).map(([k,v])=>`<option value="${k}">${k} – ${v.d.slice(0,44)}…</option>`).join('');
+}
+
+function startEdit(id){
+  editingId=editingId===id?null:id;
+  renderTable();
+  if(editingId)setTimeout(()=>document.getElementById(`row-${id}`)?.scrollIntoView({behavior:'smooth',block:'center'}),50);
+}
+function cancelEdit(){editingId=null;renderTable();}
+
+function saveEdit(id){
+  const r=data.find(d=>d.id===id);
+  if(!r)return;
+  r.char1=+document.getElementById('e-char1').value||null;
+  r.sub1=+document.getElementById('e-sub1').value||null;
+  r.align1=document.getElementById('e-align1').value||null;
+  r.char2=+document.getElementById('e-char2').value||null;
+  r.sub2=+document.getElementById('e-sub2').value||null;
+  r.align2=document.getElementById('e-align2').value||null;
+  r.sentiment=document.getElementById('e-sentiment').value||null;
+  r.status=document.getElementById('e-status').value;
+  r.notes=document.getElementById('e-notes').value;
+  editingId=null;
+  const ok=document.getElementById('save-ok');
+  if(ok){ok.classList.add('show');setTimeout(()=>ok.classList.remove('show'),2000);}
+  renderAll();
+}
+
+function quickStatus(id,status){
+  const r=data.find(d=>d.id===id);
+  if(r){r.status=status;if(document.getElementById('e-notes'))r.notes=document.getElementById('e-notes').value;}
+  editingId=null;
+  renderAll();
+}
+
+function toggleExpand(id){
+  const el=document.getElementById(`txt-${id}`);
+  const btn=el?.nextElementSibling;
+  if(!el)return;
+  el.classList.toggle('trunc');
+  if(btn)btn.textContent=el.classList.contains('trunc')?'show more':'show less';
+}
+
+function applyFilters(){
+  const act=document.getElementById('f-activity').value;
+  const city=document.getElementById('f-city').value;
+  const sent=document.getElementById('f-sentiment').value;
+  const aln=document.getElementById('f-align').value;
+  const stat=document.getElementById('f-status').value;
+  const srch=(document.getElementById('f-search').value||'').toLowerCase();
+  filteredIds=data.filter(r=>{
+    if(act&&r.activity!==act)return false;
+    if(city&&r.city!==city)return false;
+    if(sent&&r.sentiment!==sent)return false;
+    if(aln&&r.align1!==aln&&r.align2!==aln)return false;
+    if(stat&&r.status!==stat)return false;
+    if(srch&&!(r.text||'').toLowerCase().includes(srch)&&!(r.notes||'').toLowerCase().includes(srch))return false;
+    return true;
+  }).map(r=>r.id);
+  renderTable();
+}
+
+function clearFilters(){
+  ['f-activity','f-city','f-sentiment','f-align','f-status'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-search').value='';
+  filteredIds=data.map(r=>r.id);
+  activeActivity=null;
+  renderAll();
+}
+
+function filterByActivity(act){
+  activeActivity=activeActivity===act?null:act;
+  switchTab('coding');
+  document.getElementById('f-activity').value=activeActivity||'';
+  applyFilters();
+}
+
+function switchTab(tab){
+  ['dashboard','coding','about'].forEach(t=>{
+    document.getElementById(`tab-${t}`).style.display=t===tab?'flex':'none';
+  });
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('active',['dashboard','coding','about'][i]===tab);
+  });
+  if(tab==='coding')renderTable();
+  if(tab==='dashboard')renderDashboard();
+}
+
+function goToRow(id){
+  switchTab('coding');
+  filteredIds=data.map(r=>r.id);
+  ['f-activity','f-city','f-sentiment','f-align','f-status'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('f-search').value='';
+  renderTable();
+  setTimeout(()=>{document.getElementById(`row-${id}`)?.scrollIntoView({behavior:'smooth',block:'center'});startEdit(id);},100);
+}
+
+function exportCSV(){
+  const headers=['id','activity','city','role','text','char1','char1_name','sub1','align1','char2','char2_name','sub2','align2','sentiment','status','notes'];
+  const esc=v=>`"${String(v||'').replace(/"/g,'""')}"`;
+  const rows=[headers.join(','),...data.map(r=>[
+    r.id,r.activity,esc(r.city),esc(r.role),esc(r.text),
+    r.char1,esc(CHARS[r.char1]||''),r.sub1,esc(r.align1),
+    r.char2,esc(CHARS[r.char2]||''),r.sub2,esc(r.align2),
+    esc(r.sentiment),esc(r.status),esc(r.notes)
+  ].join(','))];
+  const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([rows.join('\n')],{type:'text/csv'})),download:'TAI_coding_demo_export.csv'});
+  a.click();
+}
+
+function renderAll(){renderDashboard();if(document.getElementById('tab-coding').style.display!=='none')renderTable();}
+renderAll();
+</script>
+</body>
+</html>
